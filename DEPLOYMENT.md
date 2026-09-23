@@ -1,16 +1,25 @@
 # BounceApp deployment
 
-1. Create an empty MySQL database and database user in cPanel; grant the user all privileges on that database.
-2. Upload/extract all BounceApp files into the intended document root.
-3. Select PHP 8.1 or newer and enable PDO MySQL, cURL, fileinfo, and mbstring.
-4. Ensure the application root, `storage/`, and `public/uploads/` are writable during setup (normally 0755 directories on cPanel).
-5. Visit `https://your-domain/install.php` and enter the app URL, database details, and first administrator account.
-6. After installation, sign in and create a project.
-7. Page capture uses Google PageSpeed Insights final-screenshot data. It can work without an API key under public quota, but for reliable production use you may put a Google PageSpeed API key in `.env` as `PAGESPEED_API_KEY=`.
-8. If automatic capture is unavailable or rate-limited, every page has a manual JPG/PNG/WEBP screenshot upload fallback.
-9. BounceApp validates target URLs as public http/https URLs and blocks private/reserved IPs before direct website scanning.
-10. Use HTTPS in production and keep `.env` private. Apache `.htaccess` included in this package blocks direct access to sensitive config/database files.
+1. Create an empty MySQL/MariaDB database and database user in cPanel.
+2. Upload/extract the BounceApp server ZIP into the domain/subdomain document root.
+3. Use PHP 8.1+ with PDO MySQL, cURL, fileinfo and mbstring enabled.
+4. Ensure the project root and `storage/` are writable during installation.
+5. Open `https://your-domain/install.php`.
+6. Enter App URL + MySQL credentials and install. No admin/user account is required.
+7. Open the app, paste a website URL and scan.
 
-## Existing database import
+## Screenshot capture
 
-`database.sql` contains the complete schema. The web installer imports it automatically and creates the admin account with a securely hashed password.
+BounceApp uses a fallback chain. If `PAGESPEED_API_KEY` is present in `.env`, PageSpeed is tried first. Otherwise BounceApp goes directly to Thum.io. If a provider fails or rate-limits, the next provider is tried automatically. Manual screenshot upload remains a last fallback.
+
+## Public link model
+
+Every project gets a long random bearer token. Anyone who has the unique workspace link can view and edit that project without logging in. Treat the link as access to the project and only share it with intended collaborators.
+
+## Security
+
+- Use HTTPS.
+- Keep `.env` private. `.htaccess` blocks browser access to it on Apache.
+- Website scanning rejects localhost/private/reserved IP targets to reduce SSRF risk.
+- Uploaded files are MIME/type and size checked.
+- Delete uploaded server ZIP files from the public web root after extraction.
