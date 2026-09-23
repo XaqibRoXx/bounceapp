@@ -1,9 +1,9 @@
 Options -Indexes
 <FilesMatch "^(\.env|config\.php|database\.sql|README\.md|DEPLOYMENT\.md)$">
-  Require all denied
+ Require all denied
 </FilesMatch>
 <IfModule mod_headers.c>
-  Header always set X-Content-Type-Options "nosniff"
-  Header always set X-Frame-Options "SAMEORIGIN"
-  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+ Header always set X-Content-Type-Options "nosniff"
+ Header always set X-Frame-Options "SAMEORIGIN"
+ Header always set Referrer-Policy "strict-origin-when-cross-origin"
 </IfModule>

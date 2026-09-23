@@ -1,6 +1,0 @@
-<?php
-if($page==='dashboard'){
-  $u=require_auth();$s=$pdo->prepare('SELECT b.*,l.name location_name,l.city FROM bookings b JOIN locations l ON l.id=b.location_id WHERE b.user_id=? ORDER BY b.created_at DESC');$s->execute([$u['id']]);$bookings=$s->fetchAll();layout_start('My bookings');?>
-  <section class="container section"><div class="section-head"><div><span class="eyebrow">Account</span><h1>Hi, <?=e(explode(' ',$u['name'])[0])?></h1><p>Manage your upcoming and past storage bookings.</p></div><a class="btn btn-light" href="<?=e(app_url(['page'=>'profile']))?>">Profile</a></div><?php if(!$bookings):?><div class="empty"><h3>No bookings yet.</h3><p>Find a storage location and your reservations will appear here.</p><a class="btn" href="<?=e(app_url())?>">Find storage</a></div><?php else:?><div class="booking-list"><?php foreach($bookings as $b):?><a class="booking-row" href="<?=e(app_url(['page'=>'booking','id'=>$b['id']]))?>"><div><span class="status status-<?=e($b['status'])?>"><?=e(str_replace('_',' ',$b['status']))?></span><h3><?=e($b['location_name'])?></h3><p><?=e($b['city'])?> · <?=date('M j, Y g:i A',strtotime($b['dropoff_at']))?></p></div><div class="booking-price"><strong><?=e(money((float)$b['total_amount']))?></strong><small><?=e($b['code'])?></small></div></a><?php endforeach;?></div><?php endif;?></section>
-  <?php layout_end();exit;
-}

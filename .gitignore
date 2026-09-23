@@ -1,4 +1,5 @@
 .env
 /storage/installed.lock
-/storage/*.log
-.DS_Store
+/public/uploads/captures/*
+/public/uploads/attachments/*
+!/public/uploads/.gitkeep

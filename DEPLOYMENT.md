@@ -1,28 +1,16 @@
-# BounceApp server deployment
+# BounceApp deployment
 
-1. Create an empty MySQL database and database user in cPanel. Grant the user ALL privileges on that database.
-2. Upload all files from this package into the target web root, for example `public_html/` or a subdomain document root.
-3. Ensure PHP 8.1 or newer is selected and PDO MySQL + mbstring are enabled.
-4. Make sure the `storage/` directory and the project root are writable during installation so the installer can create `.env` and `storage/installed.lock`. Normal `0755` directories are usually sufficient on cPanel.
-5. Open `https://your-domain.com/install.php` in a browser.
-6. Enter the application URL, database credentials, and the first administrator account.
-7. After successful installation, sign in. The installer becomes locked automatically.
-8. In Admin → Locations, add real storage locations. Set pricing/capacity/opening hours and optionally an externally hosted image URL.
-9. In Admin → Settings, choose the currency symbol, support email, site name and footer text.
-10. Keep `.env` private. The included `.htaccess` blocks browser access to `.env`, config, SQL and documentation files on Apache.
+1. Create an empty MySQL database and database user in cPanel; grant the user all privileges on that database.
+2. Upload/extract all BounceApp files into the intended document root.
+3. Select PHP 8.1 or newer and enable PDO MySQL, cURL, fileinfo, and mbstring.
+4. Ensure the application root, `storage/`, and `public/uploads/` are writable during setup (normally 0755 directories on cPanel).
+5. Visit `https://your-domain/install.php` and enter the app URL, database details, and first administrator account.
+6. After installation, sign in and create a project.
+7. Page capture uses Google PageSpeed Insights final-screenshot data. It can work without an API key under public quota, but for reliable production use you may put a Google PageSpeed API key in `.env` as `PAGESPEED_API_KEY=`.
+8. If automatic capture is unavailable or rate-limited, every page has a manual JPG/PNG/WEBP screenshot upload fallback.
+9. BounceApp validates target URLs as public http/https URLs and blocks private/reserved IPs before direct website scanning.
+10. Use HTTPS in production and keep `.env` private. Apache `.htaccess` included in this package blocks direct access to sensitive config/database files.
 
-## Manual database install
+## Existing database import
 
-`database.sql` contains the full schema. You may import it through phpMyAdmin, then copy `.env.example` to `.env` and fill in credentials. To create the first admin safely, using the web installer is recommended because it hashes the password correctly.
-
-## Payment handling
-
-No third-party payment credentials are embedded. Bookings default to `unpaid`; administrators can mark them `paid` or `refunded` from the booking manager. This keeps the package deployable before a payment provider is chosen.
-
-## Security checklist
-
-- Use HTTPS.
-- Delete any old ZIP files from the public web root after extraction.
-- Use a unique database password and a strong administrator password.
-- Do not commit `.env`; it is already ignored by Git.
-- Keep PHP/MySQL patched through your host.
+`database.sql` contains the complete schema. The web installer imports it automatically and creates the admin account with a securely hashed password.

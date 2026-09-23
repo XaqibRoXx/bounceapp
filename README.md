@@ -1,27 +1,20 @@
 # BounceApp
 
-Production-ready, dependency-free PHP/MySQL luggage-storage booking marketplace for shared hosting and cPanel.
+BounceApp is a visual website feedback and change-request workspace. Add a website, discover pages, capture page screenshots, drag over any area to create a numbered annotation, discuss changes, move work through statuses, and share a client-review link.
 
-## Included
+## Core workflow
 
-- Customer registration/login and secure sessions
-- Storage location search and detail pages
-- Booking creation with time-window capacity validation
-- Booking codes, customer dashboard, cancellation, status tracking
-- Completed-booking reviews
-- Admin overview and paid-revenue summary
-- Admin CRUD for storage locations
-- Admin booking/payment status management
-- Customer account enable/disable controls
-- Site/currency/support/footer settings
-- CSRF protection, prepared SQL queries, password hashing, output escaping
-- Responsive desktop/tablet/mobile UI
-- Web installer and standalone `database.sql`
+1. Create a project from a website URL.
+2. Scan the website (sitemap/homepage links) or add pages manually.
+3. Capture a page using Google PageSpeed's final screenshot, or upload a screenshot manually.
+4. Drag on the screenshot to mark an exact area and create a numbered change request.
+5. Add description, replacement text, target URL, and optional attachment.
+6. Developer moves issues through Open → In Progress → Done / Need Clarification.
+7. Shared reviewers can comment, Approve, or Reopen work from a secure share link.
+8. Recapture any page while older capture versions remain in history.
 
-## Requirements
+## Server requirements
 
-- PHP 8.1+ with PDO MySQL and mbstring
-- MySQL 5.7+ or MySQL 8 / MariaDB equivalent
-- Apache/cPanel recommended; HTTPS strongly recommended
+PHP 8.1+ (PDO MySQL, cURL, fileinfo, mbstring), MySQL/MariaDB, Apache/cPanel recommended.
 
-See `DEPLOYMENT.md` for server installation.
+See `DEPLOYMENT.md`.
