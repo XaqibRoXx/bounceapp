@@ -72,46 +72,29 @@ if(is_post()){
         $s->execute([$ownerId,mb_substr($name,0,160),rtrim($url,'/'),$token]);
         $projectId=(int)$pdo->lastInsertId();
 
-        $urls=discover_pages(rtrim($url,'/'));
-        if(!$urls)$urls=[rtrim($url,'/').'/'];
-        $insert=$pdo->prepare('INSERT IGNORE INTO pages(project_id,title,url) VALUES(?,?,?)');
-        $homeId=0;
-        foreach($urls as $i=>$pageUrl){
-            $path=parse_url($pageUrl,PHP_URL_PATH)?:'/';
-            $title=$path==='/'?'Home':trim(str_replace(['-','_','/'],' ',basename(rtrim($path,'/'))));
-            $title=$title!==''?ucwords($title):'Page';
-            $insert->execute([$projectId,mb_substr($title,0,190),$pageUrl]);
-            if($i===0){$q=$pdo->prepare('SELECT id FROM pages WHERE project_id=? AND url=? LIMIT 1');$q->execute([$projectId,$pageUrl]);$homeId=(int)$q->fetchColumn();}
-        }
-        log_activity($projectId,null,'created public project','project',$projectId,['url'=>$url,'discovered'=>count($urls)]);
-        if($homeId){
-            $pg=page_row($homeId);
-            if($pg){$cap=capture_and_store($pg,['id'=>$projectId]);if(!$cap['ok'])flash('error','Website saved, but automatic screenshot failed: '.$cap['error']);}
+        // Exact-page mode: the URL entered by the user is the only page created automatically.
+        // BounceApp does not discover sitemap/homepage links or scan the rest of the website.
+        $pageUrl=$url;
+        $path=parse_url($pageUrl,PHP_URL_PATH)?:'/';
+        $title=$path==='/'?'Home':trim(str_replace(['-','_','/'],' ',basename(rtrim($path,'/'))));
+        $title=$title!==''?ucwords($title):'Page';
+        $insert=$pdo->prepare('INSERT INTO pages(project_id,title,url) VALUES(?,?,?)');
+        $insert->execute([$projectId,mb_substr($title,0,190),$pageUrl]);
+        $pageId=(int)$pdo->lastInsertId();
+
+        log_activity($projectId,null,'created exact-page public project','project',$projectId,['url'=>$pageUrl]);
+        if($pageId){
+            $pg=page_row($pageId);
+            if($pg){$cap=capture_and_store($pg,['id'=>$projectId]);if(!$cap['ok'])flash('error','Page saved, but automatic screenshot failed: '.$cap['error']);}
         }
         $_SESSION['recent_public_projects'][$token]=['name'=>$name,'created_at'=>time()];
         if(count($_SESSION['recent_public_projects'])>8)$_SESSION['recent_public_projects']=array_slice($_SESSION['recent_public_projects'],-8,8,true);
         go(['page'=>'workspace','token'=>$token]);
     }
 
-    if(in_array($action,['scan-project','add-page','capture-page','upload-capture','create-annotation','update-status','comment','review-status'],true)){
+    if(in_array($action,['add-page','capture-page','upload-capture','create-annotation','update-status','comment','review-status'],true)){
         $token=token_from_post();
         $p=require_public_project($token);
-
-        if($action==='scan-project'){
-            $urls=discover_pages((string)$p['base_url']);
-            $s=$pdo->prepare('INSERT IGNORE INTO pages(project_id,title,url) VALUES(?,?,?)');
-            $added=0;
-            foreach($urls as $u){
-                $path=parse_url($u,PHP_URL_PATH)?:'/';
-                $title=$path==='/'?'Home':trim(str_replace(['-','_','/'],' ',basename(rtrim($path,'/'))));
-                $title=$title!==''?ucwords($title):'Page';
-                $s->execute([(int)$p['id'],mb_substr($title,0,190),$u]);
-                $added+=$s->rowCount();
-            }
-            log_activity((int)$p['id'],null,'scanned website','project',(int)$p['id'],['discovered'=>count($urls),'added'=>$added]);
-            flash('success',"Scan complete. {$added} new page(s) added.");
-            go(['page'=>'workspace','token'=>$token]);
-        }
 
         if($action==='add-page'){
             $url=normalize_public_url(post('url'));
@@ -191,8 +174,8 @@ if(is_post()){
 
 if($page==='home'){
     layout_start('Scan a website');?>
-    <section class="hero public-hero"><div class="container hero-grid"><div><span class="eyebrow">No account. Just paste a website.</span><h1>Scan it. Mark it.<br><span>Share the link.</span></h1><p>Paste any public website URL. BounceApp saves the project and pages in MySQL, captures the homepage automatically, and gives you one public workspace link that works for anyone you send it to.</p><form method="post" class="scan-card"><?=csrf_field()?><input type="hidden" name="action" value="create-public-project"><label><span>Website URL</span><input name="base_url" placeholder="example.com" autocomplete="url" required></label><button class="btn">Scan website →</button></form><div class="trust"><span>✓ No login or signup</span><span>✓ Saved in database</span><span>✓ Public share link</span><span>✓ Visual annotations</span></div></div><div class="mock"><div class="browserbar"><i></i><i></i><i></i><span>yourwebsite.com</span></div><div class="mockpage"><div class="mockhero"></div><div class="annotation-demo"><b>3</b><span>Change this section</span></div><div class="mockcards"><i></i><i></i><i></i></div></div></div></div></section>
-    <section class="container section"><div class="feature-grid"><article><b>01</b><h3>Paste the URL</h3><p>Bounce discovers website pages and stores the workspace immediately.</p></article><article><b>02</b><h3>Draw on the screenshot</h3><p>Drag over the exact area, then add the requested change, replacement text or reference.</p></article><article><b>03</b><h3>Send one link</h3><p>Anyone with the unique workspace link can open it, comment and update work without an account.</p></article></div></section>
+    <section class="hero public-hero"><div class="container hero-grid"><div><span class="eyebrow">No account. Paste one exact page URL.</span><h1>Scan it. Mark it.<br><span>Share the link.</span></h1><p>Paste any public page URL. BounceApp saves and captures only that exact URL — it does not crawl or scan the rest of the website — then gives you one public workspace link to share.</p><form method="post" class="scan-card"><?=csrf_field()?><input type="hidden" name="action" value="create-public-project"><label><span>Website URL</span><input name="base_url" placeholder="example.com" autocomplete="url" required></label><button class="btn">Scan website →</button></form><div class="trust"><span>✓ No login or signup</span><span>✓ Saved in database</span><span>✓ Public share link</span><span>✓ Visual annotations</span></div></div><div class="mock"><div class="browserbar"><i></i><i></i><i></i><span>yourwebsite.com</span></div><div class="mockpage"><div class="mockhero"></div><div class="annotation-demo"><b>3</b><span>Change this section</span></div><div class="mockcards"><i></i><i></i><i></i></div></div></div></div></section>
+    <section class="container section"><div class="feature-grid"><article><b>01</b><h3>Paste the exact URL</h3><p>Bounce saves and captures only the page URL you enter. No full-site crawl.</p></article><article><b>02</b><h3>Draw on the screenshot</h3><p>Drag over the exact area, then add the requested change, replacement text or reference.</p></article><article><b>03</b><h3>Send one link</h3><p>Anyone with the unique workspace link can open it, comment and update work without an account.</p></article></div></section>
     <?php layout_end();exit;
 }
 
@@ -203,12 +186,12 @@ if($page==='workspace'){
     $stats=$pdo->prepare('SELECT COUNT(DISTINCT pg.id) pages,COUNT(DISTINCT a.id) issues,SUM(a.status="done") done_count,SUM(a.status="approved") approved_count FROM pages pg LEFT JOIN captures c ON c.page_id=pg.id LEFT JOIN annotations a ON a.capture_id=c.id WHERE pg.project_id=?');$stats->execute([$p['id']]);$st=$stats->fetch()?:[];
     $share=app_url(['page'=>'workspace','token'=>$token]);
     layout_start($p['name'],true);?>
-    <section class="container section"><div class="sectionhead"><div><span class="eyebrow">Public workspace · no login required</span><h1><?=e($p['name'])?></h1><p><?=e($p['base_url'])?></p></div><div class="actions"><button class="btn btn-light" type="button" data-copy="<?=e($share)?>">Copy share link</button><form method="post"><?=csrf_field()?><input type="hidden" name="action" value="scan-project"><input type="hidden" name="token" value="<?=e($token)?>"><button class="btn">↻ Scan pages</button></form></div></div>
+    <section class="container section"><div class="sectionhead"><div><span class="eyebrow">Public workspace · no login required</span><h1><?=e($p['name'])?></h1><p><?=e($p['base_url'])?></p></div><div class="actions"><button class="btn btn-light" type="button" data-copy="<?=e($share)?>">Copy share link</button></div></div>
     <div class="share-banner"><div><strong>Anyone with this link can use this workspace.</strong><p>No account or password is required.</p></div><code><?=e($share)?></code></div>
     <div class="stats"><div><small>Pages</small><strong><?=e($st['pages']??count($pages))?></strong></div><div><small>Requests</small><strong><?=e($st['issues']??0)?></strong></div><div><small>Done</small><strong><?=e($st['done_count']??0)?></strong></div><div><small>Approved</small><strong><?=e($st['approved_count']??0)?></strong></div></div>
-    <div class="sectionhead compact"><div><h2>Website pages</h2><p>Open a page to capture, annotate and discuss changes.</p></div><button class="btn btn-light" type="button" data-toggle="#addPage">+ Add page</button></div>
+    <div class="sectionhead compact"><div><h2>Workspace pages</h2><p>The pasted URL is the only page added automatically. Add another page manually only when you need it.</p></div><button class="btn btn-light" type="button" data-toggle="#addPage">+ Add page</button></div>
     <div id="addPage" class="panel" hidden><form method="post" class="form-grid"><?=csrf_field()?><input type="hidden" name="action" value="add-page"><input type="hidden" name="token" value="<?=e($token)?>"><div class="two"><label>Page URL<input name="url" placeholder="<?=e(rtrim($p['base_url'],'/').'/about')?>" required></label><label>Title <span class="muted">optional</span><input name="title" placeholder="About"></label></div><button class="btn btn-small">Add page</button></form></div>
-    <?php if(!$pages):?><div class="empty"><h3>No pages found.</h3><p>Add a page manually or scan again.</p></div><?php else:?><div class="page-list"><?php foreach($pages as $pg):?><a class="page-row" href="<?=e(app_url(['page'=>'visual','token'=>$token,'id'=>$pg['id']]))?>"><div class="thumb"><?php if($pg['capture_path']):?><img src="<?=e(public_file($pg['capture_path']))?>" alt="Page capture"><?php else:?><span>No capture yet</span><?php endif;?></div><div class="page-meta"><h3><?=e($pg['title']?:'Page')?></h3><p><?=e($pg['url'])?></p><span><?=$pg['capture_count']?> captures · <?=$pg['issue_count']?> requests · <?=$pg['approved_count']?> approved</span></div><span class="arrow">→</span></a><?php endforeach;?></div><?php endif;?></section>
+    <?php if(!$pages):?><div class="empty"><h3>No page found.</h3><p>Add a page manually to continue.</p></div><?php else:?><div class="page-list"><?php foreach($pages as $pg):?><a class="page-row" href="<?=e(app_url(['page'=>'visual','token'=>$token,'id'=>$pg['id']]))?>"><div class="thumb"><?php if($pg['capture_path']):?><img src="<?=e(public_file($pg['capture_path']))?>" alt="Page capture"><?php else:?><span>No capture yet</span><?php endif;?></div><div class="page-meta"><h3><?=e($pg['title']?:'Page')?></h3><p><?=e($pg['url'])?></p><span><?=$pg['capture_count']?> captures · <?=$pg['issue_count']?> requests · <?=$pg['approved_count']?> approved</span></div><span class="arrow">→</span></a><?php endforeach;?></div><?php endif;?></section>
     <?php layout_end();exit;
 }
 
