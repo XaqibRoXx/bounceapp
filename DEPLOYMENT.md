@@ -6,7 +6,7 @@
 4. Ensure the project root and `storage/` are writable during installation.
 5. Open `https://your-domain/install.php`.
 6. Enter App URL + MySQL credentials and install. No admin/user account is required.
-7. Open the app, paste a website URL and scan.
+7. Open the app and paste the exact page URL you want to capture. BounceApp will not crawl the rest of the website automatically.
 
 ## Screenshot capture
 
@@ -20,6 +20,6 @@ Every project gets a long random bearer token. Anyone who has the unique workspa
 
 - Use HTTPS.
 - Keep `.env` private. `.htaccess` blocks browser access to it on Apache.
-- Website scanning rejects localhost/private/reserved IP targets to reduce SSRF risk.
+- Exact-page URL validation rejects localhost/private/reserved IP targets to reduce SSRF risk.
 - Uploaded files are MIME/type and size checked.
 - Delete uploaded server ZIP files from the public web root after extraction.
