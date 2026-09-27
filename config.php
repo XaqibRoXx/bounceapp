@@ -23,6 +23,5 @@ return [
  ],
  'capture'=>[
    'pagespeed_key'=>$env['PAGESPEED_API_KEY']??'',
-   'max_pages'=>(int)($env['SCAN_MAX_PAGES']??30),
  ]
 ];
