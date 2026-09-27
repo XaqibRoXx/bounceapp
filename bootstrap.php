@@ -62,12 +62,6 @@ function absolutize_url(string $href,string $base):?string{
 function safe_fetch(string $url,int $timeout=12,int $maxBytes=1500000):?string{
  if(!valid_public_url($url)||!function_exists('curl_init'))return null;$ch=curl_init($url);curl_setopt_array($ch,[CURLOPT_RETURNTRANSFER=>true,CURLOPT_FOLLOWLOCATION=>false,CURLOPT_CONNECTTIMEOUT=>5,CURLOPT_TIMEOUT=>$timeout,CURLOPT_USERAGENT=>'BounceApp/1.0 (+visual feedback scanner)',CURLOPT_HTTPHEADER=>['Accept: text/html,application/xml,text/xml;q=0.9,*/*;q=0.5'],CURLOPT_RANGE=>'0-'.($maxBytes-1)]);$body=curl_exec($ch);$code=(int)curl_getinfo($ch,CURLINFO_HTTP_CODE);curl_close($ch);return is_string($body)&&$code>=200&&$code<300?substr($body,0,$maxBytes):null;
 }
-function discover_pages(string $base):array{
- $base=rtrim($base,'/');$urls=[$base.'/'];$max=max(5,min(100,(int)cfg('capture.max_pages',30)));
- foreach([$base.'/sitemap.xml',$base.'/sitemap_index.xml'] as $sm){$xml=safe_fetch($sm,10,2000000);if(!$xml)continue;preg_match_all('~<loc>\s*(.*?)\s*</loc>~is',$xml,$m);foreach($m[1]??[] as $u){$u=html_entity_decode(strip_tags($u),ENT_QUOTES|ENT_HTML5);if(valid_public_url($u)&&same_host($u,$base))$urls[]=$u;if(count($urls)>=$max)break 2;}}
- if(count($urls)<2){$html=safe_fetch($base.'/',10,1500000);if($html){preg_match_all('~href=["\']([^"\']+)["\']~i',$html,$m);foreach($m[1]??[] as $href){$u=absolutize_url($href,$base);if($u&&valid_public_url($u)&&same_host($u,$base)){$u=preg_replace('/#.*$/','',$u);$urls[]=$u;}if(count(array_unique($urls))>=$max)break;}}}
- return array_slice(array_values(array_unique($urls)),0,$max);
-}
 function save_capture_bytes(string $bytes,string $source):array{
  if($bytes==='')return ['ok'=>false,'error'=>'Screenshot provider returned an empty image.'];
  $dir=__DIR__.'/public/uploads/captures';if(!is_dir($dir))mkdir($dir,0755,true);
