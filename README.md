@@ -1,6 +1,6 @@
 # BounceApp
 
-BounceApp is a lightweight visual website feedback tool built for fast, account-free collaboration. Paste a public website URL, let BounceApp discover pages and capture screenshots, mark exact areas that need changes, discuss them, and share one workspace link with clients or collaborators.
+BounceApp is a lightweight visual website feedback tool built for fast, account-free collaboration. Paste one exact public page URL, capture that page, mark exact areas that need changes, discuss them, and share one workspace link with clients or collaborators.
 
 ## Why BounceApp
 
@@ -9,7 +9,7 @@ Traditional website feedback often gets scattered across screenshots, email, cha
 ## Features
 
 - **No login or signup required** for public feedback workspaces.
-- **Website scanning** from a public URL with sitemap and homepage-link discovery.
+- **Exact-page scanning** — BounceApp captures only the URL the user submits and does not crawl the rest of the website automatically.
 - **Automatic screenshot capture** with a provider fallback chain.
 - **Visual annotations** for marking exact areas on a captured page.
 - **Structured change requests** with titles, descriptions, replacement text, and optional reference links.
@@ -24,9 +24,9 @@ Traditional website feedback often gets scattered across screenshots, email, cha
 
 1. Paste a public website URL.
 2. BounceApp creates a project and a unique public workspace token.
-3. It discovers pages from sitemaps and/or homepage links.
-4. The homepage is captured automatically when possible.
-5. Open a page and draw over the exact area that needs a change.
+3. BounceApp saves only that exact URL as the initial workspace page.
+4. That exact page is captured automatically when possible.
+5. Draw over the exact area that needs a change.
 6. Add the request, replacement text, attachments, or reference URL.
 7. Share the workspace link with a client, designer, developer, or reviewer.
 8. Collaborators can comment, update statuses, approve, or reopen requests without creating an account.
@@ -78,7 +78,6 @@ Copy `.env.example` to `.env` and configure the values required for your environ
 | `DB_USERNAME` | Database username |
 | `DB_PASSWORD` | Database password |
 | `PAGESPEED_API_KEY` | Optional Google PageSpeed API key for screenshot capture |
-| `SCAN_MAX_PAGES` | Maximum number of pages discovered per scan |
 
 Never commit a real `.env` file or production credentials.
 
@@ -99,7 +98,7 @@ The scanner rejects localhost/private/reserved IP destinations to reduce SSRF ri
 ## Project structure
 
 - `index.php` — main public application and workspace flow
-- `bootstrap.php` — database, security, capture, scanning, upload, and shared helpers
+- `bootstrap.php` — database, security, exact-page capture, upload, and shared helpers
 - `config.php` — environment-backed configuration
 - `database.sql` — database schema
 - `install.php` — browser-based installation
